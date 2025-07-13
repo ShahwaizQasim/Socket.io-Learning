@@ -1,7 +1,6 @@
 import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
-import cors from "cors";
 
 const app = express();
 
@@ -24,12 +23,19 @@ io.on("connection", (socket) => {
     // socket.emit("welcome", "Welcome to the server");
     // socket.broadcast.emit("welcome", "User joined the chat");
 
-    socket.on("message", ({room, message}) => {
-        console.log("Message:", message);
-        // io.emit("receive-message", data); // chating
-        // socket.broadcast.emit("receive-message", data); // group chat
-        io.to(room).emit("receive-message", message); // personal chat
+    // socket.on("message", ({ room, message }) => {
+    //     console.log("Message:", message);
+    //     io.emit("receive-message", data); // chating
+    //     // socket.broadcast.emit("receive-message", data); // group chat
+    //     // io.to(room).emit("receive-message", message); // personal chat
+    // });
+
+    // Listen for messages
+    socket.on("message", (message) => {
+        console.log("📨 Received message:", message);
+        io.emit("receive-message", message); // Broadcast to all clients
     });
+
 
     socket.on("disconnect", () => {
         console.log("User disconnected");
@@ -41,10 +47,10 @@ server.listen(3000, () => {
 });
 
 
-// emit: 
+// emit:
 // Maan lo, aap apne dost ko phone par kuch bata rahe ho, toh wo sirf aap ke dost ko hi milega. Aapne emit kiya.
 
-// broadcast: 
+// broadcast:
 // Maan lo, aap ek group mein sabko kuch batane ke liye bol rahe ho, aur aapke dost ko nahi. Aapne broadcast kiya.
 
 

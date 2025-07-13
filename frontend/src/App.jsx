@@ -1,66 +1,56 @@
-import { Button, Container, Stack, TextField, Typography } from '@mui/material';
-import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { io } from "socket.io-client";
+import { useEffect, useState } from 'react';
+import { io } from 'socket.io-client';
 
-const App = () => {
+const socket = io('http://localhost:3000');
 
-  const [message, setMessage] = useState("");
-  const [room, setRoom] = useState("");
-  const [socketId, setSocketId] = useState("");
-  const [messages, setMessages] = useState([]);
-  const socketRef = useRef(null); // 💡 Use ref to keep socket instance persistent
+function App() {
+  const [message, setMessage] = useState('');
+  const [chat, setChat] = useState([]);
 
   useEffect(() => {
-    socketRef.current = io("http://localhost:3000", {
-      transports: ["websocket"],
-    });
-
-    socketRef.current.on("connect", () => {
-      setSocketId(socketRef.current.id);
-      console.log("Connected to server", socketRef.current.id);
-    });
-
-    socketRef.current.on("receive-message", (data) => {
-      console.log("Received message:", data);
-      setMessages((messages) => [...messages, data]);
-    });
-
-    socketRef.current.on("disconnect", () => {
-      console.log("Disconnected from server");
+    socket.on('receive-message', (msg) => {
+      setChat((prev) => [...prev, msg]);
     });
 
     return () => {
-      socketRef.current.disconnect(); // Cleanup
+      socket.disconnect();
     };
   }, []);
 
-  const handleSubmit = (e) => {
+  const sendMessage = (e) => {
     e.preventDefault();
-    if (message.trim() !== '') {
-      socketRef.current.emit("message", {message, room});
-      setMessage('');
-      setRoom('');
-    }
+    if (message.trim() === '') return;
+    console.log("message", message);
+
+    socket.emit('message', message); // Send message to server
+    setMessage('');
   };
 
   return (
-    <Container>
-      <Typography variant="h4">Welcome to Socket.io</Typography>
-      <Typography variant="h6">Id: {socketId}</Typography><br />
-      <form onSubmit={handleSubmit}>
-        <TextField label="message" variant="outlined" id="message" onChange={(e) => setMessage(e.target.value)} /><br /><br/>
-        <TextField label="room" variant="outlined" id="room" onChange={(e) => setRoom(e.target.value)} /><br />
-        <Button type="submit" variant="contained" color="primary" style={{ marginTop: "10px", marginLeft: "10px" }}>Send</Button>
+    <div style={{ padding: '20px' }}>
+      <h2>Real-Time Chat App</h2>
+      <form onSubmit={sendMessage}>
+        <input
+          type="text"
+          placeholder="Enter message"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          style={{ padding: '10px', width: '300px' }}
+        />
+        <button type="submit" style={{ padding: '10px 20px' }}>
+          Send
+        </button>
       </form>
-      <Stack>
-        {
-          messages.map((message, index) => (
-            <Typography key={index}>{message}</Typography>
-          ))
-        }
-      </Stack>
-    </Container>
-  )
+
+      <div style={{ marginTop: '20px' }}>
+        {chat.map((msg, index) => (
+          <p key={index} style={{ background: '#f1f1f1', padding: '5px' }}>
+            {msg}
+          </p>
+        ))}
+      </div>
+    </div>
+  );
 }
 
-export default App
+export default App;
