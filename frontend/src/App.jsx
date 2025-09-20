@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 
 const socket = io('http://localhost:3000');
+console.log("Socket:", socket);
+
 
 function App() {
   const [message, setMessage] = useState('');
@@ -44,11 +46,23 @@ function App() {
 
       <div style={{ marginTop: '20px' }}>
         {chat.map((msg, index) => (
-          <p key={index} style={{ background: '#f1f1f1', padding: '5px' }}>
+          <p
+            key={index}
+            style={{
+              background: index % 2 === 0 ? '#e1ffc7' : '#f1f1f1',
+              padding: '10px',
+              borderRadius: '10px',
+              maxWidth: '60%',
+              marginBottom: '10px',
+              marginLeft: index % 2 === 0 ? '0' : 'auto',
+              marginRight: index % 2 === 0 ? 'auto' : '0',
+            }}
+          >
             {msg}
           </p>
         ))}
       </div>
+
     </div>
   );
 }
